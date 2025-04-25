@@ -3,14 +3,14 @@
 //   sqlc v1.29.0
 // source: users.sql
 
-package database
+package generated
 
 import (
 	"context"
 )
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (id, created_at, updated_at, email, hashed_password)
+INSERT INTO users (id, created_at, updated_at, email, password)
 VALUES (
 	gen_random_uuid(),
 	NOW(),
@@ -18,23 +18,23 @@ VALUES (
 	$1,
 	$2
 )
-RETURNING id, created_at, updated_at, email, hashed_password
+RETURNING id, created_at, updated_at, email, password
 `
 
 type CreateUserParams struct {
-	Email          string `json:"email"`
-	HashedPassword string `json:"hashed_password"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, createUser, arg.Email, arg.HashedPassword)
+	row := q.db.QueryRowContext(ctx, createUser, arg.Email, arg.Password)
 	var i User
 	err := row.Scan(
 		&i.ID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Email,
-		&i.HashedPassword,
+		&i.Password,
 	)
 	return i, err
 }

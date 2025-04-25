@@ -20,12 +20,11 @@ services:
             context: .
             dockerfile: Dockerfile
             target: base
-        environment:
-            - DB_URL=postgres://postgres:12345@psql:5432/postgres?sslmode=disable
-            - PORT=3001
+        env_file:
+            - .env
         ports:
             - "3001:3001"
-        command: sh -c "sleep 5 && goose -dir sql/migrations postgres $DB_URL up && ./main"
+        command: ./main
         networks:
             - primary
 
