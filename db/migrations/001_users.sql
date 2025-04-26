@@ -7,6 +7,9 @@ CREATE TABLE users (
 	password TEXT NOT NULL
 );
 
+CREATE INDEX idx_email ON users(email);
+
 -- +goose Down
+DROP INDEX IF EXISTS idx_email;
 DROP TABLE users;
 

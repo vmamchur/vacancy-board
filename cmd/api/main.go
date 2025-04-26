@@ -35,11 +35,12 @@ func main() {
 	q := generated.New(db)
 
 	userRepository := repository.NewUserRepository(q)
-	authService := service.NewAuthService(userRepository)
+	refreshTokenRepository := repository.NewRefreshTokenRepository(q)
+	authService := service.NewAuthService(userRepository, refreshTokenRepository, cfg.AppSecret)
 	authHandler := handler.NewAuthHandler(authService)
 
-	router := route.NewRouter(authHandler)
+	router := route.NewRouter(authHandler, cfg.AppSecret)
 
-	log.Printf("Server listening on: %s", cfg.Port)
-	log.Fatal(http.ListenAndServe(":"+cfg.Port, router))
+	log.Printf("Server listening on: %s", cfg.AppPort)
+	log.Fatal(http.ListenAndServe(":"+cfg.AppPort, router))
 }
