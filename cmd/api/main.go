@@ -12,6 +12,7 @@ import (
 	"github.com/vmamchur/vacancy-board/db/generated"
 	"github.com/vmamchur/vacancy-board/internal/handler"
 	"github.com/vmamchur/vacancy-board/internal/repository"
+	"github.com/vmamchur/vacancy-board/internal/route"
 	"github.com/vmamchur/vacancy-board/internal/service"
 )
 
@@ -37,8 +38,8 @@ func main() {
 	authService := service.NewAuthService(userRepository)
 	authHandler := handler.NewAuthHandler(authService)
 
-	http.HandleFunc("/auth/register", authHandler.Register)
+	router := route.NewRouter(authHandler)
 
 	log.Printf("Server listening on: %s", cfg.Port)
-	log.Fatal(http.ListenAndServe(":"+cfg.Port, nil))
+	log.Fatal(http.ListenAndServe(":"+cfg.Port, router))
 }
