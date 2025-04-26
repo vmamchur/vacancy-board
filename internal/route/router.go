@@ -6,10 +6,10 @@ import (
 	"github.com/vmamchur/vacancy-board/internal/handler"
 )
 
-func NewRouter(authHandler *handler.AuthHandler) http.Handler {
+func NewRouter(authHandler *handler.AuthHandler, appSecret string) http.Handler {
 	mux := http.NewServeMux()
 
-	RegisterAuthRoutes(mux, authHandler)
+	RegisterAuthRoutes(mux, authHandler, appSecret)
 
 	return mux
 }

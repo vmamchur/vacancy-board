@@ -1,4 +1,4 @@
-package response
+package httputil
 
 import (
 	"encoding/json"
@@ -31,4 +31,12 @@ func RespondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 	}
 	w.WriteHeader(code)
 	w.Write(data)
+}
+
+func DecodeJSONBody(w http.ResponseWriter, r *http.Request, dst interface{}) bool {
+	if err := json.NewDecoder(r.Body).Decode(dst); err != nil {
+		RespondWithError(w, http.StatusBadRequest, "Invalid input", err)
+		return false
+	}
+	return true
 }

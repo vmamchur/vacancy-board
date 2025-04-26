@@ -3,11 +3,14 @@ package config
 import (
 	"log"
 	"os"
+	"time"
 )
 
 type Config struct {
-	Port string
-	DB   DBConfig
+	AppPort   string
+	AppSecret string
+
+	DB DBConfig
 }
 
 type DBConfig struct {
@@ -19,9 +22,15 @@ type DBConfig struct {
 	SSLMode  string
 }
 
+const (
+	AccessTokenTTL  = 15 * time.Minute
+	RefreshTokenTTL = 30 * 24 * time.Hour
+)
+
 func Load() Config {
 	return Config{
-		Port: getEnv("PORT", "8080"),
+		AppPort:   getEnv("APP_PORT", "8080"),
+		AppSecret: mustEnv("APP_SECRET"),
 		DB: DBConfig{
 			Host:     mustEnv("DB_HOST"),
 			Port:     getEnv("DB_PORT", "5432"),
