@@ -14,6 +14,6 @@ func RegisterAuthRoutes(mux *http.ServeMux, authHandler *handler.AuthHandler, ap
 	mux.Handle("POST /auth/login", http.HandlerFunc(authHandler.Login))
 	mux.Handle("POST /auth/refresh", http.HandlerFunc(authHandler.RefreshTokens))
 
-	mux.Handle("POST /auth/revoke", jwtMiddleware(http.HandlerFunc(authHandler.RevokeRefreshToken)))
+	mux.Handle("POST /auth/logout", jwtMiddleware(http.HandlerFunc(authHandler.Logout)))
 	mux.Handle("GET /auth/me", jwtMiddleware(http.HandlerFunc(authHandler.GetMe)))
 }
