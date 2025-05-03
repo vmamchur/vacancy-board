@@ -65,7 +65,7 @@ func (h *AuthHandler) RefreshTokens(w http.ResponseWriter, r *http.Request) {
 	httputil.RespondWithJSON(w, http.StatusOK, tokens)
 }
 
-func (h *AuthHandler) RevokeRefreshToken(w http.ResponseWriter, r *http.Request) {
+func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	var dto model.RevokeRefreshTokenDTO
 
 	if !httputil.DecodeJSONBody(w, r, &dto) {
