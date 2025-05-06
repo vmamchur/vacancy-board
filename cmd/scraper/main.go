@@ -1,19 +1,17 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
-	"net/http"
 
 	_ "github.com/joho/godotenv/autoload"
 	_ "github.com/lib/pq"
 	"github.com/vmamchur/vacancy-board/config"
 	"github.com/vmamchur/vacancy-board/db/generated"
-	"github.com/vmamchur/vacancy-board/internal/handler"
 	"github.com/vmamchur/vacancy-board/internal/repository"
-	"github.com/vmamchur/vacancy-board/internal/route"
-	"github.com/vmamchur/vacancy-board/internal/service"
+	"github.com/vmamchur/vacancy-board/internal/scraper"
 )
 
 func main() {
@@ -34,13 +32,9 @@ func main() {
 
 	q := generated.New(db)
 
-	userRepository := repository.NewUserRepository(q)
-	refreshTokenRepository := repository.NewRefreshTokenRepository(q)
-	authService := service.NewAuthService(userRepository, refreshTokenRepository, cfg.AppSecret)
-	authHandler := handler.NewAuthHandler(authService)
+	vacancyRepository := repository.NewVacancyRepository(q)
+	scraper := scraper.NewScraper(vacancyRepository)
 
-	router := route.NewRouter(authHandler, cfg.AppSecret)
-
-	log.Fatal(http.ListenAndServe(":"+cfg.AppPort, router))
-	log.Printf("Server listening on: %s", cfg.AppPort)
+	scraper.Run(context.Background())
+	log.Println("Scraper service running...")
 }

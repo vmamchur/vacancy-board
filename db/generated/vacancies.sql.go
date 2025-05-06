@@ -20,6 +20,7 @@ VALUES (
 	$2,
 	$3
 )
+ON CONFLICT (url) DO NOTHING
 RETURNING id, created_at, updated_at, title, company_name, url
 `
 

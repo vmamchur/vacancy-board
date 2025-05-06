@@ -8,6 +8,7 @@ VALUES (
 	$2,
 	$3
 )
+ON CONFLICT (url) DO NOTHING
 RETURNING *;
 
 -- name: GetAllVacancies :many
