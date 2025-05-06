@@ -47,12 +47,12 @@ func (d DjinniScraper) Scrape() ([]model.Vacancy, error) {
 			return nil, err
 		}
 
-		for _, jn := range jobNodes {
+		for _, node := range jobNodes {
 			var title, url, companyName string
 
 			err := chromedp.Run(ctx,
-				chromedp.Text(".job-item__title-link", &title, chromedp.ByQuery, chromedp.FromNode(jn)),
-				chromedp.AttributeValue(".job-item__title-link", "href", &url, nil, chromedp.ByQuery, chromedp.FromNode(jn)),
+				chromedp.Text(".job-item__title-link", &title, chromedp.ByQuery, chromedp.FromNode(node)),
+				chromedp.AttributeValue(".job-item__title-link", "href", &url, nil, chromedp.ByQuery, chromedp.FromNode(node)),
 				chromedp.Text(`[data-analytics="company_page"]`, &companyName, chromedp.ByQuery),
 			)
 			if err != nil {

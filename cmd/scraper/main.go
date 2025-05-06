@@ -35,6 +35,6 @@ func main() {
 	vacancyRepository := repository.NewVacancyRepository(q)
 	scraper := scraper.NewScraper(vacancyRepository)
 
-	scraper.Run(context.Background())
 	log.Println("Scraper service running...")
+	scraper.Run(context.Background())
 }
