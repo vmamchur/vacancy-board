@@ -2,10 +2,6 @@ services:
     psql:
         image: postgres:16.3
         restart: no
-        environment:
-            POSTGRES_DB: "postgres"
-            POSTGRES_USER: "postgres"
-            POSTGRES_PASSWORD: "12345"
         ports:
             - "5432:5432"
         expose:
@@ -15,16 +11,38 @@ services:
         volumes:
             - "./.volumes/postgresql:/var/lib/postgresql/data"
 
-    app:
+    api:
         build:
             context: .
-            dockerfile: Dockerfile
+            dockerfile: api.Dockerfile
             target: base
         env_file:
             - .env
         ports:
             - "3001:3001"
         command: ./main
+        depends_on:
+            - psql
+        networks:
+            - primary
+
+    chrome:
+        image: chromedp/headless-shell:latest
+        networks:
+            - primary
+        ports:
+            - "9222:9222"
+
+    scraper:
+        build:
+            context: .
+            dockerfile: scraper.Dockerfile
+            target: base
+        env_file:
+            - .env
+        command: ./main
+        depends_on:
+            - chrome
         networks:
             - primary
 

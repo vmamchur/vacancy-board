@@ -4,20 +4,22 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
 	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/chromedp"
 	"github.com/vmamchur/vacancy-board/internal/model"
+	"github.com/vmamchur/vacancy-board/internal/repository"
 )
 
-type DjinniScraper struct{}
+type DjinniScraper struct {
+	vacancyRepository repository.VacancyRepository
+}
 
-func (d DjinniScraper) Scrape() ([]model.Vacancy, error) {
-	var vacancies []model.Vacancy
-
-	allocCtx, cancel := chromedp.NewExecAllocator(context.Background())
+func (d DjinniScraper) Scrape() error {
+	allocCtx, cancel := chromedp.NewRemoteAllocator(context.Background(), "http://chrome:9222/json/version")
 	defer cancel()
 
 	ctx, cancel := chromedp.NewContext(allocCtx)
@@ -32,11 +34,14 @@ func (d DjinniScraper) Scrape() ([]model.Vacancy, error) {
 		chromedp.Sleep(2*time.Second),
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	page := 1
+outer:
 	for {
+		log.Printf("Navigating to page %d...", page)
+
 		var jobNodes []*cdp.Node
 		err = chromedp.Run(ctx,
 			chromedp.Navigate(fmt.Sprintf("https://djinni.co/jobs/?primary_keyword=fullstack&page=%d", page)),
@@ -44,8 +49,10 @@ func (d DjinniScraper) Scrape() ([]model.Vacancy, error) {
 			chromedp.Nodes("li[id^=job-item-]", &jobNodes, chromedp.ByQueryAll),
 		)
 		if err != nil {
-			return nil, err
+			return err
 		}
+
+		log.Printf("Found %d vacancies on page %d", len(jobNodes), page)
 
 		for _, node := range jobNodes {
 			var title, url, companyName string
@@ -56,17 +63,27 @@ func (d DjinniScraper) Scrape() ([]model.Vacancy, error) {
 				chromedp.Text(`[data-analytics="company_page"]`, &companyName, chromedp.ByQuery),
 			)
 			if err != nil {
+				log.Printf("Skipping vacancy due to extraction error: %v", err)
 				continue
 			}
 
-			vacancies = append(vacancies, model.Vacancy{
+			fullUrl := "https://djinni.co" + url
+			log.Printf("Processing: \"%s\" at \"%s\" (%s)", title, companyName, fullUrl)
+
+			_, err = d.vacancyRepository.Create(ctx, model.CreateVacancyDTO{
 				Title: title,
 				CompanyName: sql.NullString{
 					String: companyName,
 					Valid:  strings.TrimSpace(companyName) != "",
 				},
-				Url: "https://djinni.co" + url,
+				Url: fullUrl,
 			})
+			if err != nil {
+				log.Printf("Stopping: vacancy already exists — \"%s\" (%s)", title, fullUrl)
+				break outer
+			}
+
+			log.Printf("Saved: \"%s\" (%s)", title, fullUrl)
 		}
 
 		var isNextBtnVisible bool
@@ -74,14 +91,15 @@ func (d DjinniScraper) Scrape() ([]model.Vacancy, error) {
 			chromedp.Evaluate(`document.querySelector('li.page-item:not(.disabled) a.page-link span.bi-chevron-right') !== null`, &isNextBtnVisible),
 		)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		if !isNextBtnVisible {
+			log.Println("No more pages. Done scraping.")
 			break
 		}
 
 		page++
 	}
 
-	return vacancies, nil
+	return nil
 }

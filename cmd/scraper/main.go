@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -36,5 +35,5 @@ func main() {
 	scraper := scraper.NewScraper(vacancyRepository)
 
 	log.Println("Scraper service running...")
-	scraper.Run(context.Background())
+	scraper.Run()
 }
